@@ -6,7 +6,7 @@ from threading import Thread, Lock
 from ultralytics import YOLO
 from ultralytics.utils.plotting import colors
 import yaml
-
+import json
 MODEL_PATH = "best.pt"
 YAML_PATH  = "data.yaml"
 
@@ -558,6 +558,11 @@ def calculate_metrics(metrics):
     now = time.time()
     elapsed = now - metrics["start_time"]
 
+#new add
+def save_metrics(metrics):
+    live = calculate_metrics(metrics)
+    with open("metrics.json", "w") as f:
+        json.dump(live, f)
     # =========================
     # BASIC PERFORMANCE
     # =========================
@@ -951,7 +956,7 @@ while True:
 
         metrics["frame_count"] += 1
         live = calculate_metrics(metrics)
-
+        save_metrics(metrics)
         # =========================
         # LEFT PANEL (SYSTEM + PICK)
         # =========================
