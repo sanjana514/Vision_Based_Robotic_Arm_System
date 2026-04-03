@@ -7,9 +7,9 @@ from ultralytics import YOLO
 from ultralytics.utils.plotting import colors
 import yaml
 import json
+automation_running = False
 MODEL_PATH = "best.pt"
 YAML_PATH  = "data.yaml"
-
 model = YOLO(MODEL_PATH)
 
 cfg = yaml.safe_load(open(YAML_PATH))
@@ -120,6 +120,12 @@ BOX_OFFSETS = {
     8: (-50, -150, -260)
 }
 
+def is_running():
+    try:
+        with open("control.json", "r") as f:
+            return json.load(f)["run"]
+    except:
+        return False
 def reverse_if_out_of_bounds(home, offset):
     target = home + offset
     if target < 0 or target > 1000:
@@ -171,9 +177,13 @@ RETURN_DELAY = 0.4
 # CONNECT
 # =========================================================
 
-robot = xarm.Controller("USB")
-print("Robot Connected")
+# robot = xarm.Controller("USB")
+# print("Robot Connected")
+class DummyRobot:
+    def setPosition(self, *args, **kwargs):
+        pass
 
+robot = DummyRobot()
 # =========================================================
 # SAFE FUNCTIONS
 # =========================================================
@@ -388,7 +398,7 @@ def place_object(label_id):
 # =========================================================
 
 aruco_dict = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_50)
-cap = cv2.VideoCapture(CAMERA_INDEX)
+cap = cv2.VideoCapture(0)
 
 workspace_rect = None
 workspace_locked = False
@@ -671,7 +681,9 @@ def save_metrics(metrics):
 print("Show markers 1,2,3,4 then press ENTER")
 
 while True:
-
+    if not automation_running:
+        time.sleep(0.1)
+        continue
     ret, frame = cap.read()
     if not ret:
         continue
@@ -1037,6 +1049,7 @@ while True:
     elif key == 27:
         break
 
+cv2.waitKey(1)
 cap.release()
 cv2.destroyAllWindows()
 
